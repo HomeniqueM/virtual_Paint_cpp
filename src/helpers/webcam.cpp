@@ -25,25 +25,10 @@ void Webcam::run()
 
 void Webcam::run_color_dectection_with_track_bar()
 {
-    /***
-     * Amarelo: 
-     * Hue Min = 18
-     * Hue Max = 48
-     * Sat Min = 160
-     * Sat Man = 255
-     * Val Min = 109
-     * Val Max = 255
-     * 
-     */ 
-
-
     int hmin = 0, smin = 0, vmin = 0;
-    int hmax = 255, smax = 255, vmax = 255;
+    int hmax = 179, smax = 255, vmax = 255;
 
     std::string windowName = "Trackbars";
-    cv::Mat mask, imgHVS;
-    // Converter a imagem para HVS
-
     cv::namedWindow(windowName, (200, 400));
     cv::createTrackbar("Hue Min", windowName, &hmin, 179);
     cv::createTrackbar("Hue Max", windowName, &hmax, 179);
@@ -51,19 +36,99 @@ void Webcam::run_color_dectection_with_track_bar()
     cv::createTrackbar("Sat Max", windowName, &smax, 255);
     cv::createTrackbar("Val Min", windowName, &vmin, 255);
     cv::createTrackbar("Val Max", windowName, &vmax, 255);
+    while (true)
+    {
+        capture.read(this->img);
+        findColor(hmin, smin, vmin, hmax, smax, vmax);
+
+        cv::imshow(this->nameWindows, imgMask);
+        cv::waitKey(1);
+    }
+}
+
+void Webcam::findColor(int hmin, int smin, int vmin, int hmax, int smax, int vmax)
+{
+    findColor(std::vector<std::vector<int>>{{hmin, smin, vmin, hmax, smax, vmax}});
+}
+/***
+ * Amarelo:
+ * Hue Min = 18
+ * Hue Max = 48
+ * Sat Min = 160
+ * Sat Man = 255
+ * Val Min = 109
+ * Val Max = 255
+ *
+ */
+
+void Webcam::findColor(std::vector<std::vector<int>> myColors)
+{
+    cv::cvtColor(this->img, this->imgHVS, cv::COLOR_BGR2HSV);
+    for (int i = 0; i < myColors.size(); i++)
+    {
+        cv::Scalar lower(myColors[i][0], myColors[i][1], myColors[i][2]);
+        cv::Scalar upper(myColors[i][3], myColors[i][4], myColors[i][5]);
+
+        std::cout << myColors[i][0] << "," << myColors[i][1] << "," << myColors[i][2] << ","
+                  << myColors[i][3] << "," << myColors[i][4] << "," << myColors[i][5] << "\n";
+        cv::inRange(this->imgHVS, lower, upper, this->imgMask);
+    }
+}
+
+void Webcam::run_and_drawing()
+{
+    std::vector<std::vector<int>> myColors{{18, 160, 109, 48, 255, 255}, // Amarelo
+                                           {0, 189, 112, 12, 255, 255}}; // Laranja
+
+    std::vector<cv::Scalar> myColorValues{{68, 277, 224}, // Amarelo
+                                          {30, 94, 241}}; // Laranja
 
     while (true)
     {
         capture.read(this->img);
-        cv::cvtColor(img, imgHVS, cv::COLOR_BGR2HSV);
-        
-        cv::Scalar lower(hmin, smin, vmin);
-        cv::Scalar upper(hmax, smax, vmax);
 
-        cv::inRange(imgHVS, lower, upper, mask);
+        cv::cvtColor(this->img, this->imgHVS, cv::COLOR_BGR2HSV);
+        for (int i = 0; i < myColors.size(); i++)
+        {
+            cv::Scalar lower(myColors[i][0], myColors[i][1], myColors[i][2]);
+            cv::Scalar upper(myColors[i][3], myColors[i][4], myColors[i][5]);
+            cv::inRange(this->imgHVS, lower, upper, this->imgMask);
 
+            getContours(imgMask);
+            cv::imshow(this->nameWindows, this->img);
+        }
 
-        cv::imshow(this->nameWindows, mask);
         cv::waitKey(1);
     }
+}
+
+void Webcam::getContours(cv::Mat imgDill)
+{
+    int contoursSize = 0;
+    float perimeter;
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    std::string objectType;
+    cv::findContours(imgDill, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    contoursSize = contours.size();
+
+    std::vector<std::vector<cv::Point>> conPoly(contoursSize);
+    std::vector<cv::Rect> boundRect(contoursSize);
+
+    for (int i = 0; i < contoursSize; i++)
+    {
+
+        int area = cv::contourArea(contours[i]);
+
+        if (area > 50)
+        {
+            perimeter = cv::arcLength(contours[i], true);
+            boundRect[i] = cv::boundingRect(conPoly[i]);
+
+            cv::approxPolyDP(contours[i], conPoly[i], 0.02 * perimeter, true);
+            cv::drawContours(this->img, conPoly, i, cv::Scalar(0, 255, 0), 2);
+        }
+        
+    }
+    
 }

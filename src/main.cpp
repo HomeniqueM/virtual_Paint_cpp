@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
 {
     Webcam *cam = new Webcam();
 
-    cam->run_color_dectection_with_track_bar();
+    cam->run_and_drawing();
 
     return 0;
 }
