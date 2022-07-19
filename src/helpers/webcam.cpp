@@ -72,7 +72,7 @@ void Webcam::run_and_drawing()
 
     std::vector<cv::Scalar> myColorValues{{68, 277, 224}, // Amarelo
                                           {30, 94, 241}}; // Laranja
-
+    cv::Point myPoint;
     while (true)
     {
         capture.read(this->img);
@@ -84,7 +84,12 @@ void Webcam::run_and_drawing()
             cv::Scalar upper(myColors[i][3], myColors[i][4], myColors[i][5]);
             cv::inRange(this->imgHVS, lower, upper, this->imgMask);
 
-            getContours(imgMask);
+            myPoint = getContours(imgMask);
+            if (myPoint.x != 0 && myPoint.y != 0)
+            {
+                this->vPoints.push_back({myPoint.x, myPoint.y, i});
+            }
+            drawOnCanvas(myColorValues);
             cv::imshow(this->nameWindows, this->img);
         }
 
@@ -115,16 +120,25 @@ cv::Point Webcam::getContours(cv::Mat imgDill)
         {
             perimeter = cv::arcLength(contours[i], true);
             cv::approxPolyDP(contours[i], conPoly[i], 0.02 * perimeter, true);
-           
+
             boundRect[i] = cv::boundingRect(conPoly[i]);
             myPoint.x = boundRect[i].x + boundRect[i].width / 2;
             myPoint.y = boundRect[i].y;
-          
-
+            
             cv::drawContours(this->img, conPoly, i, cv::Scalar(255, 0, 255), 2);
             cv::rectangle(this->img, boundRect[i].tl(), boundRect[i].br(), cv::Scalar(200, 255, 0), 5);
         }
     }
 
     return myPoint;
+}
+
+void Webcam::drawOnCanvas(std::vector<cv::Scalar> myColorValues)
+{
+    int sizeLPoint = this->vPoints.size();
+
+    for (int i = 0; i < sizeLPoint; i++)
+    {
+        cv::circle(img, cv::Point(this->vPoints[i][0], this->vPoints[i][1]), 10, cv::Scalar(myColorValues[this->vPoints[i][2]]), cv::FILLED);
+    }
 }

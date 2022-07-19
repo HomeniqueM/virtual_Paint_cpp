@@ -13,6 +13,7 @@ void menu()
         std::cout << "Selecione o modo: \n";
         std::cout << "1 - Normal\n";
         std::cout << "2 - Com controle HSV\n";
+        std::cout << "3 - Desenhar\n";
         std::cout << "0 - Finalizar\n";
 
         std::cin >> mode;
@@ -27,6 +28,8 @@ void menu()
         case 2:
             cam->run_color_dectection_with_track_bar();
             break;
+        case 3:
+         cam->run_and_drawing();
 
         default:
             std::cout << "\n\nOpção invalida\n\n";
