@@ -50,16 +50,6 @@ void Webcam::findColor(int hmin, int smin, int vmin, int hmax, int smax, int vma
 {
     findColor(std::vector<std::vector<int>>{{hmin, smin, vmin, hmax, smax, vmax}});
 }
-/***
- * Amarelo:
- * Hue Min = 18
- * Hue Max = 48
- * Sat Min = 160
- * Sat Man = 255
- * Val Min = 109
- * Val Max = 255
- *
- */
 
 void Webcam::findColor(std::vector<std::vector<int>> myColors)
 {
@@ -102,10 +92,11 @@ void Webcam::run_and_drawing()
     }
 }
 
-void Webcam::getContours(cv::Mat imgDill)
+cv::Point Webcam::getContours(cv::Mat imgDill)
 {
     int contoursSize = 0;
     float perimeter;
+    cv::Point myPoint(0, 0);
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
     std::string objectType;
@@ -123,12 +114,17 @@ void Webcam::getContours(cv::Mat imgDill)
         if (area > 50)
         {
             perimeter = cv::arcLength(contours[i], true);
-            boundRect[i] = cv::boundingRect(conPoly[i]);
-
             cv::approxPolyDP(contours[i], conPoly[i], 0.02 * perimeter, true);
-            cv::drawContours(this->img, conPoly, i, cv::Scalar(0, 255, 0), 2);
+           
+            boundRect[i] = cv::boundingRect(conPoly[i]);
+            myPoint.x = boundRect[i].x + boundRect[i].width / 2;
+            myPoint.y = boundRect[i].y;
+          
+
+            cv::drawContours(this->img, conPoly, i, cv::Scalar(255, 0, 255), 2);
+            cv::rectangle(this->img, boundRect[i].tl(), boundRect[i].br(), cv::Scalar(200, 255, 0), 5);
         }
-        
     }
-    
+
+    return myPoint;
 }

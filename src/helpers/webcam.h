@@ -14,10 +14,11 @@ private:
     int webcamNumber;
     std::string nameWindows;
 
-    void findColor(int hmin,int smin, int vmin, int hmax,int smax,int vmax);
+    void findColor(int hmin, int smin, int vmin, int hmax, int smax, int vmax);
     void createHSVTrackBar(int hmin, int smin, int vmin, int hmax, int smax, int vmax);
-    void getContours(cv::Mat imgDill);
+    cv::Point getContours(cv::Mat imgDill);
     void findColor(std::vector<std::vector<int>> myColors);
+
 public:
     Webcam(int webcamNumber = 0, std::string nameWindows = "WebCam");
     ~Webcam();
